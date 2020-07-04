@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "tfar.fastbenchminusreplacement.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "fastbenchminusreplacement.refmap.json",
+  "mixins": [
+    "CraftingContainerMixin",
+    "CraftingInventoryAccessor",
+    "CraftingResultSlotMixin"
+  ],
+  "client":[
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
