@@ -6,6 +6,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.inventory.container.WorkbenchContainer;
 import net.minecraft.item.ItemStack;
 
 import net.minecraft.item.crafting.ICraftingRecipe;
@@ -37,10 +38,13 @@ public class CraftingResultSlotMixin extends Slot {
 
 	@Redirect(method = "onTake",at = @At(value = "INVOKE",target = "Lnet/minecraft/item/crafting/RecipeManager;getRecipeNonNull(Lnet/minecraft/item/crafting/IRecipeType;Lnet/minecraft/inventory/IInventory;Lnet/minecraft/world/World;)Lnet/minecraft/util/NonNullList;"))
 	private NonNullList<ItemStack> cache(RecipeManager recipeManager, IRecipeType<ICraftingRecipe> recipeType, IInventory inventory, World world){
-		IRecipe<CraftingInventory> lastRecipe = ((CraftingScreenHandlerDuck) player.openContainer).lastRecipe();
-		if (lastRecipe != null &&
-						lastRecipe.matches(craftMatrix, player.world))
-			return lastRecipe.getRemainingItems(craftMatrix);
-		else return ((CraftingInventoryAccessor) craftMatrix).getStackList();
+		if (player.openContainer.getClass() == WorkbenchContainer.class) {
+			IRecipe<CraftingInventory> lastRecipe = ((CraftingScreenHandlerDuck) player.openContainer).lastRecipe();
+			if (lastRecipe != null &&
+							lastRecipe.matches(craftMatrix, player.world))
+				return lastRecipe.getRemainingItems(craftMatrix);
+			else return ((CraftingInventoryAccessor) craftMatrix).getStackList();
+		}
+		return player.world.getRecipeManager().getRecipeNonNull(IRecipeType.CRAFTING, this.craftMatrix, player.world);
 	}
 }
