@@ -5,6 +5,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.CraftResultInventory;
 import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.WorkbenchContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
@@ -13,19 +15,23 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SSetSlotPacket;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkDirection;
-import tfar.fastbenchminusreplacement.interfaces.CraftingScreenHandlerDuck;
+import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
 import tfar.fastbenchminusreplacement.network.PacketHandler;
 import tfar.fastbenchminusreplacement.network.S2CSyncRecipe;
 
 public class MixinHooks {
-	public static void updateResult(WorkbenchContainer fastBenchContainer, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
+
+	public static void updateResult(Container fastBenchContainer, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
+		updateResult(fastBenchContainer,(CraftingDuck)fastBenchContainer,player,inv,result);
+	}
+
+		public static void updateResult(Container fastBenchContainer,CraftingDuck duck, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
 		World world = player.world;
 		if (!world.isRemote) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
 
-			CraftingScreenHandlerDuck duck = (CraftingScreenHandlerDuck)fastBenchContainer;
-			
+
 			if (duck.checkMatrixChanges() && (duck.lastRecipe() == null || !duck.lastRecipe().matches(inv, world)))
 				duck.setLastRecipe(findRecipe(inv, world));
 

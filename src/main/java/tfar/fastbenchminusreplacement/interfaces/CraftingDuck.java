@@ -3,7 +3,7 @@ package tfar.fastbenchminusreplacement.interfaces;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.crafting.IRecipe;
 
-public interface CraftingScreenHandlerDuck {
+public interface CraftingDuck {
 
 	IRecipe<CraftingInventory> lastRecipe();
 	IRecipe<CraftingInventory> lastLastRecipe();

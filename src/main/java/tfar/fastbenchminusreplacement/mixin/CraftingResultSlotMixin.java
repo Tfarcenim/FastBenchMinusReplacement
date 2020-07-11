@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import tfar.fastbenchminusreplacement.interfaces.CraftingScreenHandlerDuck;
+import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
 
 @Mixin(CraftingResultSlot.class)
 public class CraftingResultSlotMixin extends Slot {
@@ -39,7 +39,7 @@ public class CraftingResultSlotMixin extends Slot {
 	@Redirect(method = "onTake",at = @At(value = "INVOKE",target = "Lnet/minecraft/item/crafting/RecipeManager;getRecipeNonNull(Lnet/minecraft/item/crafting/IRecipeType;Lnet/minecraft/inventory/IInventory;Lnet/minecraft/world/World;)Lnet/minecraft/util/NonNullList;"))
 	private NonNullList<ItemStack> cache(RecipeManager recipeManager, IRecipeType<ICraftingRecipe> recipeType, IInventory inventory, World world){
 		if (player.openContainer.getClass() == WorkbenchContainer.class) {
-			IRecipe<CraftingInventory> lastRecipe = ((CraftingScreenHandlerDuck) player.openContainer).lastRecipe();
+			IRecipe<CraftingInventory> lastRecipe = ((CraftingDuck) player.openContainer).lastRecipe();
 			if (lastRecipe != null &&
 							lastRecipe.matches(craftMatrix, player.world))
 				return lastRecipe.getRemainingItems(craftMatrix);

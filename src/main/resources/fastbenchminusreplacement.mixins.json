@@ -6,7 +6,8 @@
   "mixins": [
     "CraftingContainerMixin",
     "CraftingInventoryAccessor",
-    "CraftingResultSlotMixin"
+    "CraftingResultSlotMixin",
+    "PlayerContainerMixin"
   ],
   "client":[
   ],

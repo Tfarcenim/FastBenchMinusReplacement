@@ -4,10 +4,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.CraftResultInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.inventory.container.WorkbenchContainer;
+import net.minecraft.inventory.container.*;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
@@ -19,8 +16,8 @@ import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
 
 import javax.annotation.Nullable;
 
-@Mixin(WorkbenchContainer.class)
-abstract class CraftingContainerMixin extends Container implements CraftingDuck {
+@Mixin(PlayerContainer.class)
+abstract class PlayerContainerMixin extends Container implements CraftingDuck {
 
 	@Shadow
 	@Final
@@ -36,13 +33,13 @@ abstract class CraftingContainerMixin extends Container implements CraftingDuck 
 	protected IRecipe<CraftingInventory> lastLastRecipe;
 	protected boolean checkMatrixChanges = true;
 
-	protected CraftingContainerMixin(@Nullable ContainerType<?> type, int syncId) {
+	protected PlayerContainerMixin(@Nullable ContainerType<?> type, int syncId) {
 		super(type, syncId);
 	}
 
 	@Override
 	public void onCraftMatrixChanged(IInventory inventoryIn) {
-		MixinHooks.updateResult((WorkbenchContainer) (Object) this, player, craftMatrix, craftResult);
+		MixinHooks.updateResult((PlayerContainer) (Object) this, player, craftMatrix, craftResult);
 	}
 
 	@Override
@@ -80,7 +77,7 @@ abstract class CraftingContainerMixin extends Container implements CraftingDuck 
 				player.dropItem(itemstack2, false);
 			}
 			checkMatrixChanges = true;
-			MixinHooks.updateResult((WorkbenchContainer) (Object)this, player, craftMatrix, craftResult);
+			MixinHooks.updateResult((PlayerContainer) (Object)this, player, craftMatrix, craftResult);
 		}
 		return lastRecipe == null ? ItemStack.EMPTY : itemstack;
 	}

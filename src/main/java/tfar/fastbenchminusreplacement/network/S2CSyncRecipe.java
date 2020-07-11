@@ -11,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkEvent;
-import tfar.fastbenchminusreplacement.interfaces.CraftingScreenHandlerDuck;
+import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
 
 import java.util.function.Supplier;
 
@@ -42,9 +42,9 @@ public class S2CSyncRecipe {
 
     ctx.get().enqueueWork(() -> {
       Container container = player.openContainer;
-      if (container instanceof WorkbenchContainer) {
+      if (container instanceof CraftingDuck) {
         Minecraft.getInstance().world.getRecipeManager().getRecipe(rec)
-                .ifPresent(iRecipe -> ((CraftingScreenHandlerDuck) container).updateLastRecipe((IRecipe<CraftingInventory>) iRecipe));
+                .ifPresent(iRecipe -> ((CraftingDuck) container).updateLastRecipe((IRecipe<CraftingInventory>) iRecipe));
       }
     });
     ctx.get().setPacketHandled(true);
