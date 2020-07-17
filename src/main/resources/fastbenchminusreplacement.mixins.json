@@ -4,12 +4,16 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "fastbenchminusreplacement.refmap.json",
   "mixins": [
+    "ContainerAccessor",
+    "CraftingContainerAccessor",
     "CraftingContainerMixin",
     "CraftingInventoryAccessor",
+    "CraftingInventoryMixin",
     "CraftingResultSlotMixin",
+    "ForgeHooksMixin",
     "PlayerContainerMixin"
   ],
-  "client":[
+  "client": [
   ],
   "injectors": {
     "defaultRequire": 1

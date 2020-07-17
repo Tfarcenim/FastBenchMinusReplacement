@@ -1,11 +1,16 @@
 package tfar.fastbenchminusreplacement;
 
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import tfar.fastbenchminusreplacement.network.PacketHandler;
+
+import static net.minecraftforge.common.MinecraftForge.EVENT_BUS;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(FastBenchMinusReplacement.MODID)
@@ -17,7 +22,10 @@ public class FastBenchMinusReplacement
 
     private static final Logger LOGGER = LogManager.getLogger();
 
+    public static FastBenchMinusReplacement instance;
+
     public FastBenchMinusReplacement() {
+        instance = this;
         // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
     }

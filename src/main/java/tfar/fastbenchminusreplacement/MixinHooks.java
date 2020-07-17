@@ -6,50 +6,75 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.CraftResultInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.PlayerContainer;
-import net.minecraft.inventory.container.WorkbenchContainer;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SSetSlotPacket;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkDirection;
-import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
+import tfar.fastbenchminusreplacement.interfaces.CraftingInventoryDuck;
+import tfar.fastbenchminusreplacement.mixin.ContainerAccessor;
 import tfar.fastbenchminusreplacement.network.PacketHandler;
 import tfar.fastbenchminusreplacement.network.S2CSyncRecipe;
 
 public class MixinHooks {
 
-	public static void updateResult(Container fastBenchContainer, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
-		updateResult(fastBenchContainer,(CraftingDuck)fastBenchContainer,player,inv,result);
-	}
-
-		public static void updateResult(Container fastBenchContainer,CraftingDuck duck, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
-		World world = player.world;
+	public static void slotChangedCraftingGrid(World world, PlayerEntity player, CraftingInventory inv, CraftResultInventory result) {
 		if (!world.isRemote) {
 
 			ItemStack itemstack = ItemStack.EMPTY;
 
+			IRecipe<CraftingInventory> recipe = (IRecipe<CraftingInventory>) result.getRecipeUsed();
+			if (recipe == null || !recipe.matches(inv, world)) recipe = findRecipe(inv, world);
 
-			if (duck.checkMatrixChanges() && (duck.lastRecipe() == null || !duck.lastRecipe().matches(inv, world)))
-				duck.setLastRecipe(findRecipe(inv, world));
-
-			if (duck.lastRecipe() != null) {
-				itemstack = duck.lastRecipe().getCraftingResult(inv);
+			if (recipe != null) {
+				itemstack = recipe.getCraftingResult(inv);
 			}
 
 			result.setInventorySlotContents(0, itemstack);
-			ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity) player;
-			if (duck.lastLastRecipe() != duck.lastRecipe()) serverPlayerEntity.connection.sendPacket(new SSetSlotPacket(fastBenchContainer.windowId, 0, itemstack));
-			else if (duck.lastLastRecipe() != null && duck.lastLastRecipe() == duck.lastRecipe() && !ItemStack.areItemsEqual(duck.lastLastRecipe().getCraftingResult(inv),
-							duck.lastRecipe().getCraftingResult(inv)))
-				serverPlayerEntity.connection.sendPacket(new SSetSlotPacket(fastBenchContainer.windowId, 0, itemstack));
 			PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
-			buf.writeString(duck.lastRecipe() != null ? duck.lastRecipe().getId().toString() : "null");
-			PacketHandler.INSTANCE.sendTo(new S2CSyncRecipe(duck.lastRecipe()), serverPlayerEntity.connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
-			duck.setLastLastRecipe(duck.lastRecipe());
+			buf.writeString(recipe != null ? recipe.getId().toString() : "null");
+			PacketHandler.INSTANCE.sendTo(new S2CSyncRecipe(recipe), ((ServerPlayerEntity)player).connection.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+			result.setRecipeUsed(recipe);
 		}
+	}
+
+	public static ItemStack handleShiftCraft(PlayerEntity player, Container container, Slot resultSlot, CraftingInventory input, CraftResultInventory craftResult, int outStart, int outEnd) {
+		ItemStack outputCopy = ItemStack.EMPTY;
+		CraftingInventoryDuck duck = (CraftingInventoryDuck)input;
+		duck.setCheckMatrixChanges(false);
+		if (resultSlot != null && resultSlot.getHasStack()) {
+
+			IRecipe<CraftingInventory> recipe = (IRecipe<CraftingInventory>) craftResult.getRecipeUsed();
+			while (recipe != null && recipe.matches(input, player.world)) {
+				ItemStack recipeOutput = resultSlot.getStack().copy();
+				outputCopy = recipeOutput.copy();
+
+				recipeOutput.getItem().onCreated(recipeOutput, player.world, player);
+
+				if (!player.world.isRemote && !((ContainerAccessor)container).insert(recipeOutput, outStart, outEnd,true)) {
+					duck.setCheckMatrixChanges(true);
+					return ItemStack.EMPTY;
+				}
+
+				resultSlot.onSlotChange(recipeOutput, outputCopy);
+				resultSlot.onSlotChanged();
+
+				if (!player.world.isRemote && recipeOutput.getCount() == outputCopy.getCount()) {
+					duck.setCheckMatrixChanges(true);
+					return ItemStack.EMPTY;
+				}
+
+				ItemStack itemstack2 = resultSlot.onTake(player, recipeOutput);
+				player.dropItem(itemstack2, false);
+			}
+			duck.setCheckMatrixChanges(true);
+			slotChangedCraftingGrid(player.world, player, input, craftResult);
+		}
+		duck.setCheckMatrixChanges(true);
+		return craftResult.getRecipeUsed() == null ? ItemStack.EMPTY : outputCopy;
 	}
 
 	public static IRecipe<CraftingInventory> findRecipe(CraftingInventory inv, World world) {

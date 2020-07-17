@@ -2,16 +2,20 @@ package tfar.fastbenchminusreplacement.network;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.CraftResultInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.WorkbenchContainer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkEvent;
-import tfar.fastbenchminusreplacement.interfaces.CraftingDuck;
+import tfar.fastbenchminusreplacement.mixin.CraftingContainerAccessor;
+import tfar.fastbenchminusreplacement.mixin.PlayerContainerAccessor;
 
 import java.util.function.Supplier;
 
@@ -42,11 +46,36 @@ public class S2CSyncRecipe {
 
     ctx.get().enqueueWork(() -> {
       Container container = player.openContainer;
-      if (container instanceof CraftingDuck) {
-        Minecraft.getInstance().world.getRecipeManager().getRecipe(rec)
-                .ifPresent(iRecipe -> ((CraftingDuck) container).updateLastRecipe((IRecipe<CraftingInventory>) iRecipe));
+      if (container instanceof PlayerContainer || container instanceof WorkbenchContainer) {
+        IRecipe<?> r = Minecraft.getInstance().world.getRecipeManager().getRecipe(rec).orElse(null);
+        updateLastRecipe(player.openContainer, (IRecipe<CraftingInventory>) r);
       }
     });
     ctx.get().setPacketHandled(true);
   }
+
+  public static void updateLastRecipe(Container container, IRecipe<CraftingInventory> rec) {
+
+    CraftingInventory craftInput = null;
+    CraftResultInventory craftResult = null;
+
+    if (container instanceof PlayerContainer) {
+      craftInput = ((PlayerContainerAccessor)container).getCraftMatrix();
+      craftResult = ((PlayerContainerAccessor)container).getCraftResult();
+    }
+
+    else if (container instanceof WorkbenchContainer) {
+      craftInput = ((CraftingContainerAccessor)container).getCraftMatrix();
+      craftResult = ((CraftingContainerAccessor)container).getCraftResult();
+    }
+
+    if (craftInput == null) {
+      System.out.println("why are these null?");
+    } else {
+      craftResult.setRecipeUsed(rec);
+      if (rec != null) craftResult.setInventorySlotContents(0, rec.getCraftingResult(craftInput));
+      else craftResult.setInventorySlotContents(0, ItemStack.EMPTY);
+    }
+  }
+
 }
