@@ -24,9 +24,6 @@ public class CraftingResultSlotMixin extends Slot {
 
 	@Shadow
 	@Final
-	private PlayerEntity player;
-	@Shadow
-	@Final
 	private CraftingInventory craftMatrix;
 
 	public CraftingResultSlotMixin(Inventory inventory, int index, int x, int y) {
