@@ -37,13 +37,16 @@ public class CraftingResultSlotMixin extends Slot {
 
 	@Override
 	public void putStack(ItemStack stack) {
-		//do nothing
+		//do nothing in vanilla, but delegate to super if a mod overrides this class eg refined storage
+		if (((CraftingResultSlot)(Object)this).getClass() != CraftingResultSlot.class) {
+			super.putStack(stack);
+		}
 	}
 
 	@Redirect(method = "onCrafting(Lnet/minecraft/item/ItemStack;)V",
 					at = @At(value = "INVOKE",target = "Lnet/minecraft/inventory/IRecipeHolder;onCrafting(Lnet/minecraft/entity/player/PlayerEntity;)V"))
 	public void no(IRecipeHolder recipeUnlocker, PlayerEntity player) {
-		//do nothing
+		//do nothing, no mod overrides this yet
 	}
 
 	//inventory is actually the crafting result inventory so it's a safe cast
