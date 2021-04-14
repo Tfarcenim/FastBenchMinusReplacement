@@ -3,6 +3,7 @@ package tfar.fastbenchminusreplacement.mixin;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.*;
 import net.minecraft.inventory.container.CraftingResultSlot;
+import net.minecraft.inventory.container.RecipeBookContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.inventory.container.WorkbenchContainer;
 import net.minecraft.item.ItemStack;
@@ -39,6 +40,10 @@ public class CraftingResultSlotMixin extends Slot {
 	public void putStack(ItemStack stack) {
 		//do nothing in vanilla, but delegate to super if a mod overrides this class eg refined storage
 		if (((CraftingResultSlot)(Object)this).getClass() != CraftingResultSlot.class) {
+			super.putStack(stack);
+		}
+		//there's mods that directly use this slot, delegate if it's not a vanilla container
+		if (!(((CraftingInventoryAccessor)craftMatrix).getEventHandler() instanceof RecipeBookContainer)) {
 			super.putStack(stack);
 		}
 	}
